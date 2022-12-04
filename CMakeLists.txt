@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.12)
 
 # Change your executable name to something creative!
-set(NAME mastodon-avatar) # <-- Name your project/executable here!
+set(NAME picodon) # <-- Name your project/executable here!
 
-include(pimoroni_pico_import.cmake)
 include(pico_sdk_import.cmake)
+include(pico_extras_import.cmake)
 
 # Gooey boilerplate
 project(${NAME} C CXX ASM)
@@ -23,10 +23,8 @@ add_compile_options(-Wall
 
 # Add your source files
 add_executable(${NAME}
-    main.cpp mastodon.c st7789_lcd.c tls_client.c JPEGDEC.cpp cJSON.c # <-- Add source files here!
+    main.cpp mastodon.c mastdisplay.c tls_client.c JPEGDEC.cpp cJSON.c font8.c # <-- Add source files here!
 )
-
-pico_generate_pio_header(${NAME} ${CMAKE_CURRENT_LIST_DIR}/st7789_lcd.pio)
 
 # Include required libraries
 # This assumes `pimoroni-pico` is stored alongside your project
@@ -41,6 +39,8 @@ target_link_libraries(${NAME}
 	pico_cyw43_arch_lwip_threadsafe_background
 	pico_lwip_mbedtls
 	pico_mbedtls
+    pico_multicore
+    pico_scanvideo_dpi
 )
 
 target_include_directories(${NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR} )

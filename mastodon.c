@@ -47,13 +47,17 @@ static void parse_account_json(MTOOT* toot, cJSON* account_json)
     }
 }
 
-bool get_latest_home_toot(MTOOT* toot, const char* last_toot_id)
+bool get_home_toot(MTOOT* toot, const char* last_toot_id, const char* max_toot_id)
 {
     char* content_ptr;
     char req[128] = "/api/v1/timelines/home?limit=1";
     if (last_toot_id) {
         strcat(req, "&since_id=");
         strcat(req, last_toot_id);
+    }
+    else if (max_toot_id) {
+        strcat(req, "&max_id=");
+        strcat(req, max_toot_id);
     }
     int rsp_len = https_get(MASTODON_HOST, req, AUTH_HEADER, buffer, BUFFER_LEN, &content_ptr);
     if (rsp_len <= 0) {
