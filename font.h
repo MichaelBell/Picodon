@@ -37,7 +37,7 @@ typedef struct {
 } lv_font_t;
 
 #define FONT_WIDTH_WORDS 4
-#define FONT_HEIGHT 15
+#define FONT_HEIGHT 16
 #define FONT_SIZE_WORDS (FONT_HEIGHT * FONT_WIDTH_WORDS)
 extern const lv_font_t ubuntu_mono8;
 

@@ -35,13 +35,13 @@ static uint32_t* blank_line(uint32_t* buf) {
 }
 
 #define FONT (&ubuntu_mono8)
-static uint16_t font_colours[16];
+static __scratch_x("font") uint32_t font_colours[16];
 
 static inline __attribute__((always_inline)) uint32_t* add_char(uint32_t* buf, int c, int y) {
-    const lv_font_fmt_txt_glyph_dsc_t *g = &FONT->dsc->glyph_dsc[c - 0x20 + 1];
-    const uint8_t *b = FONT->dsc->glyph_bitmap + g->bitmap_index;
-    int ey = y - FONT_HEIGHT + 3 + g->ofs_y + g->box_h;
-    if (ey < 0 || ey >= g->box_h) {
+    lv_font_fmt_txt_glyph_dsc_t g = FONT->dsc->glyph_dsc[c - 0x20 + 1];
+    const uint8_t *b = FONT->dsc->glyph_bitmap + g.bitmap_index;
+    const int ey = y - FONT_HEIGHT + 4 + g.ofs_y + g.box_h;
+    if (ey < 0 || ey >= g.box_h || g.box_w == 0) {
         *buf++ = COMPOSABLE_COLOR_RUN | (BG_COLOUR << 16);
         *buf++ = (2 + FONT_WIDTH_WORDS * 2 - 5) | (COMPOSABLE_RAW_2P << 16);
         *buf++ = BG_COLOUR | (BG_COLOUR << 16);
@@ -49,22 +49,17 @@ static inline __attribute__((always_inline)) uint32_t* add_char(uint32_t* buf, i
     else {
         *buf++ = COMPOSABLE_RAW_RUN | (BG_COLOUR << 16);
         *buf++ = (2 + FONT_WIDTH_WORDS * 2 - 3) | (BG_COLOUR << 16);
-        int bi = g->box_w * ey;
-        for (int x = 0; x < FONT_WIDTH_WORDS * 2; x++) {
-            uint32_t pixel;
-            int ex = x - g->ofs_x;
-            if (ex >= 0 && ex < g->box_w) {
-                pixel = bi & 1 ? font_colours[b[bi >> 1] & 0xf] : font_colours[b[bi >> 1] >> 4];
-                bi++;
-            } else {
-                pixel = BG_COLOUR;
-            }
-            if (!(x & 1)) {
-                *buf = pixel;
-            } else {
-                *buf++ |= pixel << 16;
-            }
-        }
+        int bi = (g.box_w * ey);
+
+        uint32_t bits = (b[bi >> 2] << 16) | (b[(bi >> 2) + 1] << 8) | b[(bi >> 2) + 2];
+        bits >>= 8 - ((bi & 3) << 1);
+        bits &= 0xffff & (0xffff << ((8 - g.box_w) << 1));
+        bits >>= g.ofs_x << 1;
+
+        *buf++ = font_colours[bits >> 12];
+        *buf++ = font_colours[(bits >> 8) & 0xf];
+        *buf++ = font_colours[(bits >> 4) & 0xf];
+        *buf++ = font_colours[bits & 0xf];
     }
 
     return buf;
@@ -82,7 +77,7 @@ static uint32_t* __not_in_flash_func(toot_line)(uint32_t* buf, MDTOOT* toot, int
         if (l < FONT_HEIGHT && toot->acct_name) {
             *buf++ = BG_COLOUR | ((MIDDLE_BORDER_WIDTH - 3) << 16);
             const char* c = toot->acct_name;
-            while (*c && *c != '@') {
+            while (*c >= 0x20 && *c < 0x7F && (c - toot->acct_name) < 10) {
                 buf = add_char(buf, *c++, l);
             }
             int text_len = c - toot->acct_name;
@@ -124,8 +119,10 @@ static void render_scanline(struct scanvideo_scanline_buffer *dest, MDDATA* data
 }
 
 static void build_font_colours() {
-    for (int i = 0; i < 16; i++) {
-        font_colours[i] = (0x0841 * ((i * 3) / 2)) + BG_COLOUR;
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            font_colours[i*4 + j] = ((0x0841 * i * 8) + BG_COLOUR) | (((0x0841 * j * 8) + BG_COLOUR) << 16);
+        }
     }
 }
 
