@@ -101,6 +101,7 @@ void fill_toot_data(MTOOT* toot) {
 int main() {
     // Pixel clock for 720p is 74.25MHz
     set_sys_clock_khz(74250 * 2, true);
+    //set_sys_clock_khz(64000 * 4, true);
 
     stdio_init_all();
 

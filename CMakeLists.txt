@@ -45,7 +45,11 @@ target_link_libraries(${NAME}
 
 target_include_directories(${NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR} )
 
-target_compile_definitions(${NAME} PRIVATE PICO_CORE1_STACK_SIZE=0x400 )
+target_compile_definitions(${NAME} PRIVATE 
+    PICO_CORE1_STACK_SIZE=0x400 
+    PICO_SCANVIDEO_PLANE1_VARIABLE_FRAGMENT_DMA=1
+    PICO_SCANVIDEO_MAX_SCANLINE_BUFFER_WORDS=280
+)
 
 pico_enable_stdio_usb(${NAME} 1)
 pico_enable_stdio_uart(${NAME} 0)

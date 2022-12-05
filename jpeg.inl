@@ -3285,7 +3285,7 @@ static int DecodeJPEG(JPEGIMAGE *pJPEG)
     iErr = 0;
     pJPEG->iResCount = pJPEG->iResInterval;
     // Calculate how many MCUs we can fit in the pixel buffer to maximize LCD drawing speed
-    iMCUCount = (MAX_BUFFERED_PIXELS / 2) / (mcuCX * mcuCY);
+    iMCUCount = (MAX_BUFFERED_PIXELS) / (mcuCX * mcuCY);
     if (pJPEG->ucPixelType == EIGHT_BIT_GRAYSCALE)
         iMCUCount *= 2; // each pixel is only 1 byte
     if (iMCUCount > cx)
@@ -3463,6 +3463,7 @@ static int DecodeJPEG(JPEGIMAGE *pJPEG)
                    jd.iHeight = (pJPEG->iHeight>>iScaleShift) - (jd.y - pJPEG->iYOffset);
                 }
                 bContinue = (*pJPEG->pfnDraw)(&jd);
+#if 0
                 if (pJPEG->ucPixelType <= EIGHT_BIT_GRAYSCALE)
                 {
                     // Using the internal buffer, swap to other half to allow for async DMA
@@ -3470,6 +3471,7 @@ static int DecodeJPEG(JPEGIMAGE *pJPEG)
                     else pJPEG->usPixels = pJPEG->usPixelsBuf;
                     jd.pPixels = pJPEG->usPixels;
                 }
+#endif
                 jd.x += iPitch;
                 if ((cx - 1 - x) < iMCUCount) // change pitch for the last set of MCUs on this row
                     iPitch = (cx - 1 - x) * mcuCX;
